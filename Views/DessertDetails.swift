@@ -10,6 +10,8 @@ import SwiftUI
 
 struct DessertDetailsView: View {
     @StateObject private var detailsViewModel = DessertDetailsViewModel()
+    @State private var showFullDescription = false
+    
     
     var id: String
     
@@ -18,12 +20,6 @@ struct DessertDetailsView: View {
     }
     
     var body: some View {
-            Text(dessert.strMeal ?? "Dessert Details").bold().onAppear{
-                Task {
-                    await detailsViewModel.getDetails(id: id)
-                }
-            }
-        
         // Default value is a Creative Commons image
         // https://commons.wikimedia.org/wiki/File:12_Course_Table_Setting.jpg
         AsyncImage(url: URL(string: dessert.strMealThumb ?? "https://upload.wikimedia.org/wikipedia/commons/6/6a/12_Course_Table_Setting.jpg")) { image in
@@ -34,19 +30,32 @@ struct DessertDetailsView: View {
         } placeholder: {
             ProgressView()
         }
-            if !(dessert.strInstructions?.isEmptyOrNilOrWhitespace ?? true) {
-                Text("Directions:\n").bold().italic()
-                Text(dessert.strInstructions!.replacingOccurrences(of: "\n", with: "\n\n")).italic()
-            }
-                     
-        if detailsViewModel.ingredients.count > 0 {
-            Text("Ingredients:\n").bold().italic()
-
-            List(detailsViewModel.ingredients, id: \.self) { ing in
-                Text(ing)
+        
+        Text(dessert.strMeal ?? "Dessert Details").bold().onAppear{
+            Task {
+                await detailsViewModel.getDetails(id: id)
             }
         }
-        
+    
+        if detailsViewModel.hasSteps {
+            Text("Instructions:").italic().bold().padding(.top, 30)
+            Text("\(detailsViewModel.dessert.strInstructions!.prefix(200))...")
+                .padding(.horizontal, 25)
+            Button(action: {
+                showFullDescription.toggle()
+            }) {
+                Text("See more")
+            }
+            .sheet(isPresented: $showFullDescription) {
+                Modal(text: detailsViewModel.dessert.strInstructions!)
+            }
+        }
+    
+                     
+        if detailsViewModel.hasIngredients {
+            Text("Ingredients:").italic().bold().padding(.top, 30)
+            Text(detailsViewModel.ingredients)
+        }
     }
 }
 

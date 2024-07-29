@@ -6,3 +6,12 @@
 //
 
 import Foundation
+
+struct FullInstructions: View {
+    var directions: String
+    
+    
+    var body: some View {
+        Text(directions)
+    }
+}

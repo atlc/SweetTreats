@@ -24,11 +24,15 @@ func fetchDessert(id: String) async throws -> DessertDetails {
 
 class DessertDetailsViewModel: ObservableObject {
     @Published var dessert = DessertDetails()
-    @Published var ingredients: [String] = []
+    @Published var ingredients: String = ""
+    @Published var steps: [String] = []
+    
+    @Published var hasIngredients: Bool = false
+    @Published var hasSteps: Bool = false
     
     @MainActor
     func getDetails(id: String) async {
-        do {       
+        do {
             let dessert = try await fetchDessert(id: id)
             
             self.dessert = dessert
@@ -45,14 +49,31 @@ class DessertDetailsViewModel: ObservableObject {
                 let valMeasure = mirrored.children.first(where: { $0.label == keyMeasure })?.value as? String
                 
                 var val = valIngredient
-        
+                
                 if valMeasure != nil { val! += " (\(valMeasure ?? ""))" }
                 
-                if !valIngredient!.isEmptyOrNilOrWhitespace { unfilteredIngredients.append(val ?? "" ) }
+                if valIngredient != nil && !valIngredient!.isEmptyOrNilOrWhitespace { unfilteredIngredients.append(val ?? "" ) }
             }
-                    
+            
             let filteredIngredients = unfilteredIngredients.filter { ing in !ing.isEmptyOrNilOrWhitespace }
-            self.ingredients = filteredIngredients
+            self.ingredients = filteredIngredients.joined(separator: ", ")
+            
+            if filteredIngredients.count > 0 {
+                self.hasIngredients = true
+            }
+            
+            var steps: [String] =  []
+            
+            if (dessert.strInstructions != nil && !dessert.strInstructions.isEmptyOrNilOrWhitespace) {
+                self.hasSteps = true
+                steps = (dessert.strInstructions?.components(separatedBy: "\n"))!
+            }         
+            
+            self.steps = steps
+            
+            if steps.count > 0 {
+                self.hasSteps = true
+            }
         } catch {
             print(error)
         }
