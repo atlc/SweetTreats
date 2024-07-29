@@ -14,9 +14,22 @@ struct DessertsView: View {
     var body: some View {
         NavigationView {
             VStack {
-                
                 List(dessertsViewModel.desserts, id: \.idMeal) { dessert in
-                    Text(dessert.strMeal)
+                    NavigationLink(
+                        destination: DessertDetailsView(id: dessert.idMeal),
+                        label: {
+                            Text(dessert.strMeal)
+                        }
+                    )
+                    
+                    AsyncImage(url: URL(string: dessert.strMealThumb)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                        
+                    } placeholder: {
+                        ProgressView()
+                    }
                 }
             }
         }
